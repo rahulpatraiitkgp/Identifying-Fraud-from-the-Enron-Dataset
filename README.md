@@ -244,8 +244,3 @@ will contains equal proportions of POI vs non-POI
 - [Enron data set](https://www.cs.cmu.edu/~./enron/)
 - [Visualization of POI](http://www.nytimes.com/packages/html/national/20061023_ENRON_TABLE/index.html)
 - [Enron Analysis](https://olegleyz.github.io/enron_classifier.html)
-### Files
-- `data/`: dataset files and `pickle` objects
-- `tools/`: helper tools and functions
-- `scripts/poi_id.py`: main submission file - POI identifier
-- `scripts/tester.py`: Udacity-provided file, produce test result for submission
