@@ -171,7 +171,7 @@ In the dataset, there's an outlier which is 'TOTAL'. This should be total of num
 
 **What features did you end up using in your POI identifier, and what selection process did you use to pick them? Did you have to do any scaling? Why or why not? As part of the assignment, you should attempt to engineer your own feature that does not come ready-made in the dataset -- explain what feature you tried to make, and the rationale behind it. (You do not necessarily have to use it in the final analysis, only engineer and test it.) In your feature selection step, if you used an algorithm like a decision tree, please also give the feature importances of the features that you use, and if you used an automated feature selection function like SelectKBest, please report the feature scores and reasons for your choice of parameter values.  [relevant rubric items: “create new features”, “properly scale features”, “intelligently select feature”]**
 
-I add new features such as fraction in which this person sent email to POI persons, and fraction POI persons send emails to this persons. The reason behind this is because there's could be that if this person have higher frequencies of sending and receiving email with POI persons, this person could end up being POI himself. But this turns out filtered itself in SelectPercentile, therefore have no effect on the performance. I also add feature such as text words, based on the email of a person.
+I added new features such as fraction in which this person sent email to POI persons, and fraction POI persons send emails to this persons. The reason behind this is because there's could be that if this person have higher frequencies of sending and receiving email with POI persons, this person could end up being POI himself. But this turns out filtered itself in SelectPercentile, therefore have no effect on the performance. I also added feature such as text words, based on the email of a person.
 
 Without text feature I achieve: ```Precision: 0.27753	Recall: 0.24700```
 
@@ -233,3 +233,19 @@ StratifiedShuffleSplit is used when we take advantage of skew data but still kee
 If we using usual train test split, it could be there's no POI labels in the test set, or even worse in train set
 which would makes the model isn't good enough. If for example the StratifiedShuffleSplit have ten folds, then every folds
 will contains equal proportions of POI vs non-POI
+
+## Reference
+- [Precision Wiki](https://en.wikipedia.org/wiki/Precision_and_recall)
+- [Designing ML Models](http://nerds.airbnb.com/designing-machine-learning-models/)
+- [Cross-validation](https://en.wikipedia.org/wiki/Cross-validation_(statistics))
+- [Introduction to Machine Learning (Udacity)](https://www.udacity.com/course/viewer#!/c-ud120-nd)
+- [MITx Analytics Edge](https://www.edx.org/course/analytics-edge-mitx-15-071x-0)
+- [scikit-learn Documentation](http://scikit-learn.org/stable/documentation.html)
+- [Enron data set](https://www.cs.cmu.edu/~./enron/)
+- [Visualization of POI](http://www.nytimes.com/packages/html/national/20061023_ENRON_TABLE/index.html)
+- [Enron Analysis](https://olegleyz.github.io/enron_classifier.html)
+### Files
+- `data/`: dataset files and `pickle` objects
+- `tools/`: helper tools and functions
+- `scripts/poi_id.py`: main submission file - POI identifier
+- `scripts/tester.py`: Udacity-provided file, produce test result for submission
