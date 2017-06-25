@@ -237,6 +237,90 @@ If we using usual train test split, it could be there's no POI labels in the tes
 which would makes the model isn't good enough. If for example the StratifiedShuffleSplit have ten folds, then every folds
 will contains equal proportions of POI vs non-POI
 
+## Optimize Feature Selection/Engineering:
+### Adding new features
+
+- After plotting the number of emails from this person to poi vs the number of emails to this person from poi, I don't see any pattern between the red points(poi) and the blue points(non-poi).
+
+	![alt](figure_3.png)
+
+	But since we already got the number of emails from/to poi and the total number of from/to emails of each person, I've the strong intuition that the fraction of emails to this person from poi and from this person to poi might be helpful. So two new features named "fraction_to_poi" and "fraction_from_poi" are added in my dataset. From the new plot, we can see the red points(poi) tend to cluster in the middle of the graph.
+
+	![alt](figure_4.png)
+
+- Also I think the content of emails may reveal difference between poi and non-poi.
+  - First, I extract features from all the email text data and create labels based on whether the author is poi or not.
+  - Then I use naive bayes to create a classification and fit the above data.
+  - Finally I use that classification to make prediction on each person's email text file. The new feature is the prediction result and is named "text_learn_pred"(the helper methods for the above process are in extract_email.py, poi_by_email.py and poi_id.py files).
+
+### Univariate Feature Selection
+First, I tried each feature with GaussianNB and rank these features by the f1 score. The result as follow:
+
+```
+(feature_name,precision,recall,f1)
+('total_stock_value', 0.6325842696629214, 0.2815, 0.38961937716262973)
+('exercised_stock_options', 0.5232342007434945, 0.2815, 0.3660598179453836)
+('bonus', 0.5297549591598599, 0.227, 0.3178158907945397)
+('deferred_income', 0.5125148986889154, 0.215, 0.302923564635435)
+('restricted_stock_deferred', 0.15070454374199382, 1.0, 0.26193438543644815)
+('director_fees', 0.149947518368571, 1.0, 0.26079019428869477)
+('long_term_incentive', 0.5395569620253164, 0.1705, 0.2591185410334346)
+('fraction_to_poi', 0.286203941730934, 0.167, 0.210925165772024)
+('salary', 0.535632183908046, 0.1165, 0.19137577002053388)
+('restricted_stock', 0.5065217391304347, 0.1165, 0.18943089430894308)
+('total_payments', 0.43796992481203006, 0.1165, 0.18404423380726698)
+('loan_advances', 0.54337899543379, 0.0595, 0.10725552050473186)
+('text_learn_pred', 0.49122807017543857, 0.056, 0.10053859964093358)
+('other', 0.2916666666666667, 0.0595, 0.09883720930232558)
+('from_this_person_to_poi', 0.1925566343042071, 0.0595, 0.09090909090909091)
+('shared_receipt_with_poi', 0.1731748726655348, 0.051, 0.07879490150637311)
+('deferral_payments', 0, 0, 0)
+('expenses', 0, 0, 0)
+('to_messages', 0, 0, 0)
+('from_poi_to_this_person', 0, 0, 0)
+('from_messages', 0, 0, 0)
+('fraction_from_poi', 0, 0, 0)
+```
+
+We can see, based on the f1 score, the top 10 most important features are ['total_stock_value','exercised_stock_options','bonus','deferred_income','restricted_stock_deferred','director_fees','long_term_incentive','fraction_to_poi','salary','restricted_stock'].
+
+Of all the three newly added features, 'fraction_to_poi' is quite an important features in those email features. For some reasons, the true positive number is zero for 'fraction_from_poi' feature, so all the metrics results are invalid for that feature. Also, the added 'text_learn_pred' feature don't perform well in both precision and recall.
+
+Second, I try to combine those best features in the above result form. With the number of K increases, below is the result for the K best features combination:
+
+```
+(k,precision,recall,f1)
+(1, 0.6325842696629214, 0.2815, 0.38961937716262973)
+(2, 0.43779160186625193, 0.2815, 0.34266585514303105)
+(3, 0.4398148148148148, 0.3325, 0.3787015945330296)
+(4, 0.5112285336856011, 0.387, 0.44052361980648835)
+(5, 0.15070454374199382, 1.0, 0.26193438543644815)
+(6, 0.1668613382279326, 1.0, 0.286000286000286)
+(7, 0.1668613382279326, 1.0, 0.286000286000286)
+(8, 0.1668613382279326, 1.0, 0.286000286000286)
+(9, 0.1668613382279326, 1.0, 0.286000286000286)
+(10, 0.1668613382279326, 1.0, 0.286000286000286)
+```
+
+From the result we see that when K is greater than or equal to five, the recall value is always 1. This means the 'restricted_stock_deferred' feature is too strong for the fit and it causes overfitting. Also, from the first result, we can see 'director_fees' is also a feature that will cause bias. So I remove these two features and repeat second step. Result as follow:
+
+```
+(k,precision,recall,f1)
+(1, 0.6325842696629214, 0.2815, 0.38961937716262973)
+(2, 0.43779160186625193, 0.2815, 0.34266585514303105)
+(3, 0.4398148148148148, 0.3325, 0.3787015945330296)
+(4, 0.5112285336856011, 0.387, 0.44052361980648835)
+(5, 0.5184192900200938, 0.387, 0.44317205840251933)
+(6, 0.5184192900200938, 0.387, 0.44317205840251933)
+(7, 0.4831056793673616, 0.336, 0.3963432615747567)
+(8, 0.4801488833746898, 0.387, 0.42857142857142855)
+(9, 0.41869158878504675, 0.336, 0.37281553398058254)
+(10, 0.5118050266565118, 0.336, 0.4056746151524298)
+```
+
+From the result, the combination of top 5 features provide the best outcome in both precision and recall. So my final feature choice is ['total_stock_value','exercised_stock_options','bonus','deferred_income','long_term_incentive']. Although new features are added in my dataset, all of them are not selected.
+
+
 ## Reference
 - [Precision Wiki](https://en.wikipedia.org/wiki/Precision_and_recall)
 - [Designing ML Models](http://nerds.airbnb.com/designing-machine-learning-models/)
